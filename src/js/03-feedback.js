@@ -1,41 +1,49 @@
 import throttle from '../../node_modules/lodash.throttle';
 
-function saveFormData(event) {
-  event.preventDefault();
-  
-  const formData = new FormData(event.target);
-  const feedback = {
-    email: formData.get('email'),
-    message: formData.get('message')
-  };
+const feedbackForm = document.querySelector('.feedback-form');
+const emailInput = feedbackForm.querySelector('input[name="email"]');
+const messageTextarea = feedbackForm.querySelector('textarea[name="message"]');
 
-  localStorage.setItem('feedback-form-state', JSON.stringify(feedback));
-}
+const feedbackFormStateKey = 'feedback-form-state';
 
-const form = document.querySelector('.feedback-form');
-
-form.addEventListener('input', throttle(saveFormData, 500));
-
-window.addEventListener('DOMContentLoaded', function() {
-  const savedState = localStorage.getItem('feedback-form-state');
-  
+const getSavedFormState = () => {
+  const savedState = localStorage.getItem(feedbackFormStateKey);
   if (savedState) {
-    const feedback = JSON.parse(savedState);
-    form.elements.email.value = feedback.email;
-    form.elements.message.value = feedback.message;
+    return JSON.parse(savedState);
   }
+  return {};
+};
+
+const saveFormState = throttle(state => {
+  localStorage.setItem(feedbackFormStateKey, JSON.stringify(state));
+}, 500);
+
+const fillFormFields = () => {
+  const savedFormState = getSavedFormState();
+  emailInput.value = savedFormState.email || '';
+  messageTextarea.value = savedFormState.message || '';
+};
+
+feedbackForm.addEventListener('input', event => {
+  const { name, value } = event.target;
+  const formState = getSavedFormState();
+  const updatedState = {
+    ...formState,
+    [name]: value
+  };
+  saveFormState(updatedState);
 });
 
-form.addEventListener('submit', function(event) {
+feedbackForm.addEventListener('submit', event => {
   event.preventDefault();
 
-  const feedback = {
-    email: form.elements.email.value,
-    message: form.elements.message.value
-  };
+  const savedFormState = getSavedFormState();
 
-  localStorage.removeItem('feedback-form-state');
-  form.reset();
-  console.log(feedback);
+  localStorage.removeItem(feedbackFormStateKey);
+  emailInput.value = '';
+  messageTextarea.value = '';
+
+  console.log(savedFormState);
 });
 
+fillFormFields();

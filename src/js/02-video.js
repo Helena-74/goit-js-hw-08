@@ -4,7 +4,7 @@ import throttle from '../../node_modules/lodash.throttle';
 class VideoHandler {
   constructor() {
     this.player = null;
-    this.currentTimeKey = 'vimeo-player-current-time';
+    this.currentTimeKey = 'videoplayer-current-time';
   }
 
   init() {
